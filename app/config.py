@@ -28,6 +28,7 @@ class EmbeddingsProvider(Enum):
     BEDROCK = "bedrock"
     GOOGLE_GENAI = "google_genai"
     GOOGLE_VERTEXAI = "vertexai"
+    PORTKEY = "portkey"
 
 
 def get_env_variable(
@@ -192,6 +193,9 @@ GOOGLE_KEY = get_env_variable("GOOGLE_KEY", GOOGLE_API_KEY)
 RAG_GOOGLE_API_KEY = get_env_variable("RAG_GOOGLE_API_KEY", GOOGLE_KEY)
 AWS_SESSION_TOKEN = get_env_variable("AWS_SESSION_TOKEN", "")
 GOOGLE_APPLICATION_CREDENTIALS = get_env_variable("GOOGLE_APPLICATION_CREDENTIALS", "")
+RAG_PORTKEY_API_KEY = get_env_variable("RAG_PORTKEY_API_KEY", "")
+RAG_PORTKEY_VIRTUAL_KEY = get_env_variable("RAG_PORTKEY_VIRTUAL_KEY", "")
+RAG_PORTKEY_BASEURL = get_env_variable("RAG_PORTKEY_BASEURL", "https://api.portkey.ai/v1")
 env_value = get_env_variable("RAG_CHECK_EMBEDDING_CTX_LENGTH", "True").lower()
 RAG_CHECK_EMBEDDING_CTX_LENGTH = True if env_value == "true" else False
 
@@ -264,6 +268,16 @@ def init_embeddings(provider, model):
             model_id=model,
             region_name=AWS_DEFAULT_REGION,
         )
+    elif provider == EmbeddingsProvider.PORTKEY:
+        from app.services.portkey_embeddings import PortkeyEmbeddings
+
+        return PortkeyEmbeddings(
+            model=model,
+            api_key=RAG_PORTKEY_API_KEY,
+            virtual_key=RAG_PORTKEY_VIRTUAL_KEY,
+            base_url=RAG_PORTKEY_BASEURL,
+            chunk_size=EMBEDDINGS_CHUNK_SIZE,
+        )
     else:
         raise ValueError(f"Unsupported embeddings provider: {provider}")
 
@@ -299,6 +313,10 @@ elif EMBEDDINGS_PROVIDER == EmbeddingsProvider.BEDROCK:
         "EMBEDDINGS_MODEL", "amazon.titan-embed-text-v1"
     )
     AWS_DEFAULT_REGION = get_env_variable("AWS_DEFAULT_REGION", "us-east-1")
+elif EMBEDDINGS_PROVIDER == EmbeddingsProvider.PORTKEY:
+    EMBEDDINGS_MODEL = get_env_variable("EMBEDDINGS_MODEL", "text-embedding-3-small")
+    # Use same chunk size as OpenAI to avoid API rate limits
+    EMBEDDINGS_CHUNK_SIZE = get_env_variable("EMBEDDINGS_CHUNK_SIZE", 200)
 else:
     raise ValueError(f"Unsupported embeddings provider: {EMBEDDINGS_PROVIDER}")
 
