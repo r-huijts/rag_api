@@ -20,9 +20,9 @@ class PortkeyEmbeddings(Embeddings):
         self,
         model: str,
         api_key: str,
-        virtual_key: str,
         base_url: str = "https://api.portkey.ai/v1",
         chunk_size: int = 200,
+        virtual_key: Optional[str] = None,
         config: Optional[str] = None,
     ):
         """
@@ -31,9 +31,9 @@ class PortkeyEmbeddings(Embeddings):
         Args:
             model: The model identifier to use for embeddings
             api_key: Portkey API key
-            virtual_key: Portkey virtual key
             base_url: Base URL for Portkey API (default: https://api.portkey.ai/v1)
             chunk_size: Chunk size for batch requests (default: 200)
+            virtual_key: Optional Portkey virtual key
             config: Optional Portkey config ID
         """
         self.model = model
@@ -49,8 +49,9 @@ class PortkeyEmbeddings(Embeddings):
         headers = {
             "Content-Type": "application/json",
             "x-portkey-api-key": self.api_key,
-            "x-portkey-virtual-key": self.virtual_key,
         }
+        if self.virtual_key:
+            headers["x-portkey-virtual-key"] = self.virtual_key
         if self.config:
             headers["x-portkey-config"] = self.config
         return headers

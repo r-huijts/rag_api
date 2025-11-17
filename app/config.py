@@ -274,9 +274,9 @@ def init_embeddings(provider, model):
         return PortkeyEmbeddings(
             model=model,
             api_key=RAG_PORTKEY_API_KEY,
-            virtual_key=RAG_PORTKEY_VIRTUAL_KEY,
             base_url=RAG_PORTKEY_BASEURL,
             chunk_size=EMBEDDINGS_CHUNK_SIZE,
+            virtual_key=RAG_PORTKEY_VIRTUAL_KEY if RAG_PORTKEY_VIRTUAL_KEY else None,
         )
     else:
         raise ValueError(f"Unsupported embeddings provider: {provider}")
